@@ -1,0 +1,8 @@
+.venv/
+venv/
+
+__pycache__/
+
+operators.py
+temp.py
+testes.py
