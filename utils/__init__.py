@@ -1,0 +1,1 @@
+from .fitness_functions import fitness_fellenius

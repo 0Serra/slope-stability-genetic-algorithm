@@ -20,6 +20,12 @@ class Fellenius():
         self.soil_specific_weight = soil_specific_weight
         self.soil_cohesion = soil_cohesion
         self.soil_friction_angle = soil_friction_angle
+        self.slope_segments = self.define_slope_surface()
+        self.inicializado = False
+
+    def __getattr__(self, atribute):
+
+        return f"\nO atributo '{atribute}' ainda não foi gerado.\nUse '.set_circle_surface()' para gerá-lo\n"
 
     def define_slope_surface(self):
         slope_segments = []
@@ -30,15 +36,29 @@ class Fellenius():
 
         return slope_segments
 
-    def define_circle_equation(self, circle_center, circle_radius):
+    def set_circle_surface(self, circle_center, circle_radius):
 
         self.circle_center = circle_center
         self.circle_radius = circle_radius
 
-        circle_equation = (x - self.circle_center[0]) ** 2 + \
+        self.circle_equation = (x - self.circle_center[0]) ** 2 + \
             (y - self.circle_center[1]) ** 2 - self.circle_radius ** 2
 
-        return circle_equation
+        self.intersections = self.find_intersections_slope_and_circle(
+            self.slope_segments, self.circle_equation)
+        v1, v2, v3, v4, v5, v6, v7 = self.define_slice_properties(
+            self.intersections, self.slope_segments, self.circle_equation)
+        self.slice_width = v1
+        self.slice_x = v2
+        self.slice_center_x = v3
+        self.slice_height = v4
+        self.slice_area = v5
+        self.slice_center_angle = v6
+        self.slice_base_length = v7
+        self.safety_factor = self.fellenius_safety_factor(
+            self.slice_area, self.slice_center_angle, self.slice_base_length)
+
+        self.inicializado = True
 
     def find_intersections_slope_and_circle(self, slope_segments, circle_equation):
         intersections = []
@@ -140,14 +160,14 @@ class Fellenius():
         # slice_base_length também pode ser calculado diretamente no fator de segurança;
         return slice_width, slice_x, slice_center_x, slice_height, slice_area, slice_center_angle, slice_base_length
 
-    def fellenius_safety_factor(self, slice_area, slice_center_angle, base_length):
+    def fellenius_safety_factor(self, slice_area, slice_center_angle, slice_base_length):
         # Esse método servirá como função de aptidão para o algoritimo genético;
 
         slice_area = np.array(slice_area)
         slice_center_angle = np.array(slice_center_angle)
-        base_length = np.array(base_length)
+        slice_base_length = np.array(slice_base_length)
 
-        t1 = np.sum(self.soil_cohesion * base_length)
+        t1 = np.sum(self.soil_cohesion * slice_base_length)
         t2 = np.sum(slice_area * self.soil_specific_weight *
                     np.cos(np.radians(slice_center_angle)) * np.tan(np.radians(self.soil_friction_angle)))
         t3 = np.sum(slice_area * self.soil_specific_weight *
