@@ -46,6 +46,12 @@ class Fellenius():
 
         self.intersections = self.find_intersections_slope_and_circle(
             self.slope_segments, self.circle_equation)
+
+        self.inicializado = True
+
+        if self.intersections == 0:
+            return
+
         v1, v2, v3, v4, v5, v6, v7 = self.define_slice_properties(
             self.intersections, self.slope_segments, self.circle_equation)
         self.slice_width = v1
@@ -57,8 +63,6 @@ class Fellenius():
         self.slice_base_length = v7
         self.safety_factor = self.fellenius_safety_factor(
             self.slice_area, self.slice_center_angle, self.slice_base_length)
-
-        self.inicializado = True
 
     def find_intersections_slope_and_circle(self, slope_segments, circle_equation):
         intersections = []
@@ -101,12 +105,17 @@ class Fellenius():
 
         # Possível restrição;
         if len(intersections) != 2:
-            print("A quantidade de interseções encontradas é inválida!")
-            sys.exit()
+            # print("A quantidade de interseções encontradas é inválida!")
+            # sys.exit()
+            return 0
         else:
             return intersections
 
     def define_slice_properties(self, intersections, slope_segments, circle_equation):
+
+        if intersections == 0:
+            return
+
         x_initial, x_final = intersections[0][0], intersections[1][0]
         slice_height = []
         slice_area = []
