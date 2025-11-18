@@ -1,4 +1,5 @@
 import math
+import time as tm
 
 
 def fitness_fellenius(chromosome, ga_parameters, soil_parameters):
