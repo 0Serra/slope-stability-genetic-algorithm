@@ -9,14 +9,20 @@ def fitness_fellenius(chromosome, ga_parameters, soil_parameters):
     soil_parameters.set_circle_surface(
         normalized_individual[:2], normalized_individual[2])
 
+    d_center_foot = math.sqrt(
+        (soil_parameters.circle_center[0] - 10) ** 2 + (soil_parameters.circle_center[1] - 5) ** 2)
+
     if soil_parameters.intersections == 0:
         viability = False
 
-        return viability, 1000
+        return viability, 1000 + d_center_foot
     else:
         viability = True
 
-        return viability, soil_parameters.safety_factor
+    d_inter_foot = math.sqrt((soil_parameters.intersections[0][0] - 10) ** 2 + (
+        soil_parameters.intersections[0][1] - 5) ** 2)
+
+    return viability, soil_parameters.safety_factor + d_inter_foot
 
 
 def fitness_rastrigin(chromosome, ga_parameters):
