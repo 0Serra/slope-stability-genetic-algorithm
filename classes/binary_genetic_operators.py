@@ -41,24 +41,24 @@ class BinaryGeneticOperators():  # Objeto criado será o conjunto dos parâmetro
         return [self.create_chromosome() for _ in range(self.population_length)]
 
     def evaluate_chromosome(self, chromosome, fitness_function, *args):
-        viable, fitness = fitness_function(chromosome, *args)
+        viable, fitness, constraints = fitness_function(chromosome, *args)
 
-        return viable, fitness
+        return viable, fitness, constraints
 
     def tournament(self, chromosome1, chromosome2, fitness_function, *args):
-        viable1, fitness1 = self.evaluate_chromosome(
+        viable1, fitness1, constraints1 = self.evaluate_chromosome(
             chromosome1, fitness_function, *args)
-        viable2, fitness2 = self.evaluate_chromosome(
+        viable2, fitness2, constraints2 = self.evaluate_chromosome(
             chromosome2, fitness_function, *args)
 
         if viable1 and not viable2:
-            return [chromosome1, viable1, fitness1]
+            return [chromosome1, viable1, fitness1, constraints1]
         elif viable2 and not viable1:
-            return [chromosome2, viable2, fitness2]
+            return [chromosome2, viable2, fitness2, constraints2]
         elif fitness1 <= fitness2:
-            return [chromosome1, viable1, fitness1]
+            return [chromosome1, viable1, fitness1, constraints1]
         else:
-            return [chromosome2, viable2, fitness2]
+            return [chromosome2, viable2, fitness2, constraints2]
 
     # def select_reproduction(self, population, fitness_function, *args):
     #     index = [i for i in range(len(population)) for _ in range(2)]
