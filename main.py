@@ -1,7 +1,6 @@
-from classes import BinaryGeneticOperators, Fellenius
+from classes import BinaryGeneticOperators, Fellenius, ProbabilisticSlopeAnalysis
 from utils import fitness_fellenius, fitness_rastrigin, progress_bar
 import math as mt
-
 
 # slope_points = [[0, 5], [10, 5], [15, 10], [20, 10]]
 slope_points = [[0, 9], [9, 5.5], [10, 3.5], [13, 0]]
@@ -19,11 +18,16 @@ generations = 300
 mutation_rate = 1
 elitism_rate = 1
 
+m = [4.15, 35.05, 20.71]
+sd = [0.581, 3.505, 0.4142]
+t = 1e-4
+
 soil_parameters = Fellenius(
-    slope_points, number_slices,
+    slope_points,
+    number_slices,
     soil_specific_weight,
     soil_cohesion,
-    soil_friction_angle
+    soil_friction_angle,
 )
 
 ga_parameters = BinaryGeneticOperators(
@@ -33,23 +37,43 @@ ga_parameters = BinaryGeneticOperators(
     population_length,
     generations,
     mutation_rate,
-    elitism_rate
+    elitism_rate,
 )
+
+fosm_parameters = ProbabilisticSlopeAnalysis(m, sd, t)
 
 initial_population = ga_parameters.create_population()
 current_generation = 1
 new_population = initial_population
+data = []
 
 progress_bar(current_generation, ga_parameters.generations)
 
-while current_generation < ga_parameters.generations:
+while current_generation <= ga_parameters.generations:
     evaluated_population, elite, selected = ga_parameters.evaluation_and_selection(
-        new_population, fitness_fellenius, ga_parameters, soil_parameters)
+        new_population, fitness_fellenius, ga_parameters, soil_parameters
+    )
 
-    new_population = ga_parameters.generate_new_population(
-        selected, 1)
+    new_population = ga_parameters.generate_new_population(selected, 1)
 
     new_population += elite
+
+    best_norm = ga_parameters.normalize_chromosome(evaluated_population[0][0])
+
+    soil_parameters.set_circle_surface(best_norm[:2], best_norm[2])
+    bases = soil_parameters.slice_base_length
+    areas = soil_parameters.slice_area
+    angles = soil_parameters.slice_center_angle
+
+    fosm_parameters.limit_state_function(m, bases, areas, angles)
+    pf = fosm_parameters.find_probability_failure()
+
+    data.append(
+        [current_generation]
+        + best_norm
+        + [evaluated_population[0][2] - evaluated_population[0][3]]
+        + [pf]
+    )
 
     current_generation += 1
 
@@ -67,21 +91,23 @@ while current_generation < ga_parameters.generations:
 
     progress_bar(current_generation, ga_parameters.generations)
 
-last_population = new_population
+with open(
+    r"C:\Users\Lenovo\Desktop\ARTIGO\Resultados.txt", "w", encoding="utf-8"
+) as file:
+    # Cabeçalho
+    file.write("GERAÇÃO X Y R FITNESS PF\n")
 
-best_norm = ga_parameters.normalize_chromosome(evaluated_population[0][0])
-soil_parameters.set_circle_surface([best_norm[0], best_norm[1]], best_norm[2])
+    # Dados
+    for row in data:
+        formatted_row = " ".join(map(str, row))
+        file.write(formatted_row + "\n")
+
 # penalty = mt.sqrt((soil_parameters.intersections[0][0] - 10) ** 2 + (soil_parameters.intersections[0][1] - 5) ** 2)
 penalty = evaluated_population[0][3]
 
 print()
-print(
-    f"\nVar: {best_norm}")
+print(f"\nVar: {best_norm}")
 print(f"Viavel: {evaluated_population[0][1]}")
-print(
-    f"Fitness: {(evaluated_population[0][2]) - penalty}")
-# print(
-#     f"Fitness: {(evaluated_population[0][2])}")
-print(f"Larguras:{soil_parameters.slice_base_length}")
-print(f"Áreas:{soil_parameters.slice_area}")
-print(f"Ângulos:{soil_parameters.slice_center_angle}")
+print(f"Fitness: {(evaluated_population[0][2]) - penalty}")
+print(f"Penalidade: {penalty}")
+print(f"Pf: {pf}")

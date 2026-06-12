@@ -2,9 +2,18 @@ import random
 import math as mt
 
 
-class BinaryGeneticOperators():  # Objeto criado será o conjunto dos parâmetros referentes às variáveis de projeto;
+class BinaryGeneticOperators:  # Objeto criado será o conjunto dos parâmetros referentes às variáveis de projeto;
 
-    def __init__(self, variables_number, variables_length, variables_range, population_length, generations, mutation_rate, elitism_rate):
+    def __init__(
+        self,
+        variables_number,
+        variables_length,
+        variables_range,
+        population_length,
+        generations,
+        mutation_rate,
+        elitism_rate,
+    ):
         self.variables_number = variables_number
         self.variables_length = variables_length
         self.genes_number = variables_number * variables_length
@@ -16,22 +25,26 @@ class BinaryGeneticOperators():  # Objeto criado será o conjunto dos parâmetro
 
     def create_chromosome(self):
 
-        return ''.join(str(random.choice([0, 1])) for _ in range(self.genes_number))
+        return "".join(str(random.choice([0, 1])) for _ in range(self.genes_number))
 
     def normalize_chromosome(self, chromosome):
         normalized_chromosome = []
         normalized_variables = 0
-        separate_chromosome = [chromosome[i:i+self.variables_length]
-                               for i in range(0, len(chromosome), self.variables_length)]
+        separate_chromosome = [
+            chromosome[i : i + self.variables_length]
+            for i in range(0, len(chromosome), self.variables_length)
+        ]
 
         for (initial_range, final_range), variable in self.variables_range:
 
             for _ in range(variable):
                 normalized_variables += 1
-                int_value = int(
-                    separate_chromosome[normalized_variables - 1], 2)
-                normalized_value = initial_range + ((final_range - initial_range) /
-                                                    (2 ** self.variables_length - 1)) * int_value
+                int_value = int(separate_chromosome[normalized_variables - 1], 2)
+                normalized_value = (
+                    initial_range
+                    + ((final_range - initial_range) / (2**self.variables_length - 1))
+                    * int_value
+                )
                 normalized_chromosome.append(normalized_value)
 
         return normalized_chromosome
@@ -47,9 +60,11 @@ class BinaryGeneticOperators():  # Objeto criado será o conjunto dos parâmetro
 
     def tournament(self, chromosome1, chromosome2, fitness_function, *args):
         viable1, fitness1, constraints1 = self.evaluate_chromosome(
-            chromosome1, fitness_function, *args)
+            chromosome1, fitness_function, *args
+        )
         viable2, fitness2, constraints2 = self.evaluate_chromosome(
-            chromosome2, fitness_function, *args)
+            chromosome2, fitness_function, *args
+        )
 
         if viable1 and not viable2:
             return [chromosome1, viable1, fitness1, constraints1]
@@ -97,14 +112,16 @@ class BinaryGeneticOperators():  # Objeto criado será o conjunto dos parâmetro
 
         for i in range(0, len(index) - 2 * self.elite_number, 2):
             best = self.tournament(
-                population[index[i]], population[index[i + 1]], fitness_function, *args)
+                population[index[i]], population[index[i + 1]], fitness_function, *args
+            )
             evaluated_population.append(best)
 
         evaluated_population.sort(key=lambda item: (not item[1], item[2]))
 
-        elite = [i[0] for i in evaluated_population[:self.elite_number]]
-        selected = [i[0] for i in evaluated_population[:len(
-            population) - self.elite_number]]
+        elite = [i[0] for i in evaluated_population[: self.elite_number]]
+        selected = [
+            i[0] for i in evaluated_population[: len(population) - self.elite_number]
+        ]
 
         return evaluated_population, elite, selected
 
@@ -126,9 +143,9 @@ class BinaryGeneticOperators():  # Objeto criado será o conjunto dos parâmetro
 
         for i in range(len(genes)):
             if random.random() < self.mutation_rate:
-                genes[i] = '1' if genes[i] == '0' else '0'
+                genes[i] = "1" if genes[i] == "0" else "0"
 
-        mutated_chromosome = ''.join(genes)
+        mutated_chromosome = "".join(genes)
 
         return mutated_chromosome
 
